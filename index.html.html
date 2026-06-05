@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AI :: FUTURE PROTOCOL</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --g0:#000000;
+  --g1:#001a00;
+  --g2:#003300;
+  --g3:#00ff41;
+  --g4:#39ff14;
+  --g5:#00cc33;
+  --g6:#00ff9f;
+  --dim:#004d00;
+  --muted:#1a6b1a;
+  --text:#b3ffb3;
+  --bright:#ffffff;
+}
+
+html{scroll-behavior:smooth;}
+
+body{
+  background:var(--g0);
+  color:var(--text);
+  font-family:'Share Tech Mono',monospace;
+  overflow-x:hidden;
+  cursor:crosshair;
+}
+
+/* CUSTOM CURSOR */
+.cursor{
+  width:20px;height:20px;
+  border:1px solid var(--g3);
+  border-radius:50%;
+  position:fixed;
+  pointer-events:none;
+  z-index:99999;
+  transition:transform .1s, opacity .2s;
+  mix-blend-mode:screen;
+}
+.cursor-dot{
+  width:4px;height:4px;
+  background:var(--g3);
+  border-radius:50%;
+  position:fixed;
+  pointer-events:none;
+  z-index:99999;
+  mix-blend-mode:screen;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:#000;}
+::-webkit-scrollbar-thumb{background:var(--g3);box-shadow:0 0 6px var(--g3);}
+
+/* ═══════════════════════════════
+   MATRIX CANVAS BACKGROUND
+═══════════════════════════════ */
+#matrix-canvas{
+  position:fixed;top:0;left:0;
+  width:100%;height:100%;
+  z-index:0;
+  opacity:0.13;
+  pointer-events:none;
+}
+
+/* ═══════════════════════════════
+   SCANLINES OVERLAY
+═══════════════════════════════ */
+.scanlines{
+  position:fixed;inset:0;
+  z-index:9998;
+  pointer-events:none;
+  background:repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 3px,
+    rgba(0,0,0,0.08) 3px,
+    rgba(0,0,0,0.08) 4px
+  );
+}
+
+/* VIGNETTE */
+.vignette{
+  position:fixed;inset:0;
+  z-index:9997;
+  pointer-events:none;
+  background:radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.75) 100%);
+}
+
+/* ═══════════════════════════════
+   NAV
+═══════════════════════════════ */
+nav{
+  position:fixed;top:0;left:0;right:0;
+  z-index:1000;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:.8rem 3rem;
+  background:rgba(0,0,0,0.85);
+  border-bottom:1px solid var(--g3);
+  backdrop-filter:blur(4px);
+}
+.nav-logo{
+  font-family:'VT323',monospace;
+  font-size:1.6rem;
+  color:var(--g3);
+  text-shadow:0 0 12px var(--g3), 0 0 30px var(--g3);
+  letter-spacing:.15em;
+}
+.nav-links{
+  display:flex;gap:2.5rem;list-style:none;
+}
+.nav-links a{
+  text-decoration:none;
+  color:var(--g5);
+  font-size:.72rem;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  transition:color .2s, text-shadow .2s;
+  position:relative;
+}
+.nav-links a::before{content:'[ ';}
+.nav-links a::after{content:' ]';}
+.nav-links a:hover{color:var(--g3);text-shadow:0 0 8px var(--g3);}
+
+.nav-status{
+  font-size:.65rem;
+  color:var(--g5);
+  display:flex;
+  align-items:center;
+  gap:.5rem;
+}
+.pulse-dot{
+  width:7px;height:7px;
+  background:var(--g3);
+  border-radius:50%;
+  box-shadow:0 0 8px var(--g3);
+  animation:blink 1.2s step-end infinite;
+}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+
+/* ═══════════════════════════════
+   HERO
+═══════════════════════════════ */
+#hero{
+  position:relative;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:6rem 2rem 4rem;
+  z-index:1;
+}
+
+.hero-tag{
+  font-size:.65rem;
+  letter-spacing:.5em;
+  color:var(--g5);
+  margin-bottom:1.5rem;
+  animation:fadeIn .5s .2s both;
+}
+.hero-tag span{color:var(--g3);}
+
+.glitch-title{
+  font-family:'VT323',monospace;
+  font-size:clamp(3rem,11vw,9rem);
+  line-height:.95;
+  color:var(--g3);
+  text-shadow:0 0 20px var(--g3), 0 0 60px rgba(0,255,65,.3);
+  position:relative;
+  animation:fadeIn .5s .4s both;
+  letter-spacing:.05em;
+}
+.glitch-title::before,.glitch-title::after{
+  content:attr(data-text);
+  position:absolute;top:0;left:0;right:0;
+  color:var(--g3);
+}
+.glitch-title::before{
+  animation:glitch-a 3s infinite;
+  text-shadow:-2px 0 #ff0055, 2px 0 #00ffff;
+  clip-path:polygon(0 0,100% 0,100% 40%,0 40%);
+}
+.glitch-title::after{
+  animation:glitch-b 3s infinite;
+  text-shadow:2px 0 #ff0055,-2px 0 #00ffff;
+  clip-path:polygon(0 60%,100% 60%,100% 100%,0 100%);
+}
+@keyframes glitch-a{
+  0%,89%,100%{transform:none;opacity:0;}
+  90%{transform:translate(-3px,1px);opacity:.9;}
+  92%{transform:translate(3px,-1px);opacity:.9;}
+  94%{transform:none;opacity:0;}
+}
+@keyframes glitch-b{
+  0%,91%,100%{transform:none;opacity:0;}
+  92%{transform:translate(3px,2px);opacity:.9;}
+  94%{transform:translate(-3px,-2px);opacity:.9;}
+  96%{transform:none;opacity:0;}
+}
+
+.hero-subtitle{
+  font-family:'Rajdhani',sans-serif;
+  font-size:clamp(1rem,2.5vw,1.4rem);
+  font-weight:300;
+  color:var(--g5);
+  max-width:650px;
+  line-height:1.7;
+  margin:.8rem auto 0;
+  animation:fadeIn .5s .6s both;
+}
+
+.terminal-box{
+  margin:2.5rem auto 0;
+  max-width:560px;
+  background:rgba(0,20,0,0.8);
+  border:1px solid var(--g3);
+  box-shadow:0 0 20px rgba(0,255,65,.15), inset 0 0 20px rgba(0,255,65,.04);
+  padding:1.2rem 1.5rem;
+  text-align:left;
+  animation:fadeIn .5s .8s both;
+}
+.terminal-bar{
+  display:flex;gap:.5rem;margin-bottom:1rem;
+  align-items:center;
+}
+.t-dot{width:10px;height:10px;border-radius:50%;}
+.t-dot:nth-child(1){background:#ff5f57;}
+.t-dot:nth-child(2){background:#febc2e;}
+.t-dot:nth-child(3){background:#28c840;}
+.terminal-line{
+  font-size:.78rem;
+  color:var(--g5);
+  margin-bottom:.3rem;
+  line-height:1.6;
+}
+.terminal-line .prompt{color:var(--g3);}
+.terminal-line .cmd{color:var(--bright);}
+.terminal-line .out{color:var(--g6);}
+.terminal-line .warn{color:#ffcc00;}
+.blink-cursor{animation:blink .8s step-end infinite;}
+
+.scroll-indicator{
+  margin-top:3rem;
+  display:flex;flex-direction:column;align-items:center;gap:.4rem;
+  color:var(--muted);font-size:.6rem;letter-spacing:.3em;
+  animation:fadeIn .5s 1.2s both;
+}
+.scroll-bar{width:1px;height:48px;background:linear-gradient(to bottom,var(--g3),transparent);animation:grow 2s ease-in-out infinite;}
+@keyframes grow{0%,100%{transform:scaleY(1);}50%{transform:scaleY(1.4);}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:none;}}
+
+/* ═══════════════════════════════
+   SECTIONS
+═══════════════════════════════ */
+.section-wrap{
+  position:relative;z-index:1;
+  max-width:1080px;
+  margin:0 auto;
+  padding:5rem 2rem;
+}
+
+.sec-tag{
+  font-size:.6rem;
+  letter-spacing:.45em;
+  color:var(--g5);
+  text-transform:uppercase;
+  margin-bottom:.8rem;
+}
+.sec-tag::before{content:'// ';}
+
+.sec-title{
+  font-family:'VT323',monospace;
+  font-size:clamp(2rem,5vw,4rem);
+  color:var(--g3);
+  text-shadow:0 0 12px rgba(0,255,65,.4);
+  line-height:1.1;
+  margin-bottom:1.2rem;
+  letter-spacing:.05em;
+}
+
+.sec-body{
+  font-size:.92rem;
+  line-height:1.95;
+  color:var(--text);
+  max-width:720px;
+}
+.sec-body strong{color:var(--g3);}
+
+.hl-bar{
+  height:1px;
+  background:linear-gradient(to right,var(--g3),transparent);
+  margin:4rem 0;
+}
+
+/* ═══════════════════════════════
+   SYMBOL STRIP
+═══════════════════════════════ */
+.symbol-strip{
+  position:relative;z-index:1;
+  overflow:hidden;
+  padding:.6rem 0;
+  background:rgba(0,30,0,.5);
+  border-top:1px solid rgba(0,255,65,.2);
+  border-bottom:1px solid rgba(0,255,65,.2);
+}
+.symbol-inner{
+  display:flex;gap:2rem;
+  white-space:nowrap;
+  animation:marquee 18s linear infinite;
+  font-family:'Share Tech Mono',monospace;
+  font-size:.75rem;
+  color:var(--dim);
+  letter-spacing:.1em;
+}
+@keyframes marquee{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+
+/* ═══════════════════════════════
+   STATS
+═══════════════════════════════ */
+.stats-row{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:1.5rem;
+  margin:2.5rem 0;
+}
+.stat-box{
+  border:1px solid rgba(0,255,65,.25);
+  padding:1.5rem 1rem;
+  text-align:center;
+  background:rgba(0,20,0,.6);
+  position:relative;
+  overflow:hidden;
+  transition:border-color .3s, box-shadow .3s;
+}
+.stat-box:hover{border-color:var(--g3);box-shadow:0 0 20px rgba(0,255,65,.15);}
+.stat-box::before{
+  content:'';
+  position:absolute;top:0;left:0;right:0;
+  height:2px;
+  background:linear-gradient(to right,transparent,var(--g3),transparent);
+}
+.stat-num{
+  font-family:'VT323',monospace;
+  font-size:clamp(2.5rem,6vw,4rem);
+  color:var(--g3);
+  text-shadow:0 0 14px var(--g3);
+  display:block;
+  line-height:1;
+}
+.stat-lbl{font-size:.68rem;color:var(--g5);margin-top:.5rem;letter-spacing:.1em;}
+
+/* ═══════════════════════════════
+   QUOTE
+═══════════════════════════════ */
+.quote-block{
+  border-left:3px solid var(--g3);
+  background:rgba(0,30,0,.5);
+  padding:1.5rem 2rem;
+  margin:3rem 0;
+  box-shadow:inset 0 0 20px rgba(0,255,65,.03), 0 0 0 1px rgba(0,255,65,.1);
+}
+.quote-text{
+  font-family:'Rajdhani',sans-serif;
+  font-size:clamp(1.05rem,2vw,1.35rem);
+  font-weight:600;
+  line-height:1.65;
+  color:var(--bright);
+  font-style:italic;
+}
+.quote-src{
+  margin-top:.7rem;
+  font-size:.68rem;
+  color:var(--g6);
+  letter-spacing:.15em;
+}
+.quote-src::before{content:'> ';}
+
+/* ═══════════════════════════════
+   TIMELINE
+═══════════════════════════════ */
+#tl-section{background:rgba(0,8,0,.6);}
+.tl-grid{position:relative;padding-left:2rem;margin-top:3rem;}
+.tl-spine{
+  position:absolute;left:0;top:0;bottom:0;
+  width:2px;
+  background:linear-gradient(to bottom,var(--g3),var(--g6),var(--g3));
+  box-shadow:0 0 8px var(--g3);
+}
+.tl-item{
+  position:relative;
+  padding-left:2.5rem;
+  margin-bottom:3rem;
+  opacity:0;
+  transform:translateX(-20px);
+  transition:opacity .6s, transform .6s;
+}
+.tl-item.vis{opacity:1;transform:none;}
+.tl-node{
+  position:absolute;
+  left:-9px;top:4px;
+  width:20px;height:20px;
+  border:2px solid var(--g3);
+  border-radius:50%;
+  background:var(--g0);
+  box-shadow:0 0 10px var(--g3);
+}
+.tl-node::after{
+  content:'';
+  position:absolute;inset:3px;
+  border-radius:50%;
+  background:var(--g3);
+  box-shadow:0 0 6px var(--g3);
+}
+.tl-yr{
+  font-size:.62rem;
+  letter-spacing:.4em;
+  color:var(--g6);
+  margin-bottom:.3rem;
+}
+.tl-yr::before{content:'[ ';}
+.tl-yr::after{content:' ]';}
+.tl-h{
+  font-family:'VT323',monospace;
+  font-size:1.6rem;
+  color:var(--g3);
+  margin-bottom:.4rem;
+  letter-spacing:.05em;
+}
+.tl-p{font-size:.88rem;line-height:1.8;color:#8aad8a;}
+
+/* ═══════════════════════════════
+   RISK CARDS
+═══════════════════════════════ */
+.cards-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:1.2rem;
+  margin-top:2.5rem;
+}
+.card{
+  background:rgba(0,15,0,.8);
+  border:1px solid rgba(0,255,65,.2);
+  padding:1.8rem 1.6rem;
+  position:relative;
+  overflow:hidden;
+  transition:border-color .3s, box-shadow .3s, transform .3s;
+  opacity:0;
+  transform:translateY(16px);
+}
+.card.vis{opacity:1;transform:none;transition:opacity .5s,transform .5s,border-color .3s,box-shadow .3s;}
+.card:hover{
+  border-color:var(--g3);
+  box-shadow:0 0 24px rgba(0,255,65,.18), inset 0 0 20px rgba(0,255,65,.04);
+  transform:translateY(-3px) !important;
+}
+/* corner brackets */
+.card::before,.card::after{
+  content:'';
+  position:absolute;
+  width:12px;height:12px;
+}
+.card::before{top:0;left:0;border-top:2px solid var(--g3);border-left:2px solid var(--g3);}
+.card::after{bottom:0;right:0;border-bottom:2px solid var(--g3);border-right:2px solid var(--g3);}
+
+.card-ico{font-size:1.8rem;margin-bottom:.9rem;}
+.card-ttl{
+  font-family:'VT323',monospace;
+  font-size:1.4rem;
+  color:var(--g3);
+  margin-bottom:.5rem;
+  letter-spacing:.04em;
+}
+.card-txt{font-size:.84rem;line-height:1.75;color:#7a9e7a;}
+
+/* ═══════════════════════════════
+   ASCII DIVIDER
+═══════════════════════════════ */
+.ascii-div{
+  text-align:center;
+  font-size:.65rem;
+  color:var(--muted);
+  letter-spacing:.05em;
+  padding:1.5rem 0;
+  overflow:hidden;
+  position:relative;z-index:1;
+}
+
+/* ═══════════════════════════════
+   CTA
+═══════════════════════════════ */
+#cta{
+  position:relative;z-index:1;
+  text-align:center;
+  padding:7rem 2rem;
+  background:radial-gradient(ellipse 60% 50% at 50% 50%,rgba(0,255,65,.05) 0%,transparent 70%);
+}
+.cta-title{
+  font-family:'VT323',monospace;
+  font-size:clamp(2.2rem,6vw,5rem);
+  color:var(--g3);
+  text-shadow:0 0 30px rgba(0,255,65,.4);
+  margin-bottom:.8rem;
+  letter-spacing:.05em;
+}
+.cta-sub{color:var(--g5);font-size:.85rem;margin-bottom:2.5rem;letter-spacing:.05em;}
+.btn{
+  display:inline-block;
+  padding:.85rem 2.5rem;
+  border:1px solid var(--g3);
+  color:var(--g3);
+  text-decoration:none;
+  font-family:'Share Tech Mono',monospace;
+  font-size:.78rem;
+  letter-spacing:.25em;
+  text-transform:uppercase;
+  position:relative;
+  overflow:hidden;
+  transition:color .3s, box-shadow .3s;
+  box-shadow:0 0 10px rgba(0,255,65,.15);
+}
+.btn::before{
+  content:'';
+  position:absolute;inset:0;
+  background:var(--g3);
+  transform:translateX(-100%);
+  transition:transform .35s ease;
+}
+.btn:hover{color:var(--g0);box-shadow:0 0 25px rgba(0,255,65,.4);}
+.btn:hover::before{transform:translateX(0);}
+.btn span{position:relative;z-index:1;}
+.btn::after{content:' >>';position:relative;z-index:1;}
+
+/* FOOTER */
+footer{
+  position:relative;z-index:1;
+  text-align:center;
+  padding:1.8rem;
+  color:var(--muted);
+  font-size:.65rem;
+  border-top:1px solid rgba(0,255,65,.12);
+  letter-spacing:.1em;
+}
+
+/* HEX GRID BG PATTERN */
+.hex-bg{
+  position:relative;
+}
+.hex-bg::before{
+  content:'';
+  position:absolute;inset:0;
+  background-image:
+    radial-gradient(circle, rgba(0,255,65,.06) 1px, transparent 1px);
+  background-size:28px 28px;
+  pointer-events:none;
+}
+
+/* MOBILE */
+@media(max-width:600px){
+  nav{padding:.7rem 1.2rem;}
+  .nav-links,.nav-status{display:none;}
+}
+</style>
+</head>
+<body>
+
+<canvas id="matrix-canvas"></canvas>
+<div class="scanlines"></div>
+<div class="vignette"></div>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-dot" id="cursor-dot"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">AI::NEXUS</div>
+  <ul class="nav-links">
+    <li><a href="#intro">INIT</a></li>
+    <li><a href="#timeline">TIMELINE</a></li>
+    <li><a href="#risks">THREAT_LOG</a></li>
+    <li><a href="#cta">EXEC</a></li>
+  </ul>
+  <div class="nav-status">
+    <div class="pulse-dot"></div>
+    SYSTEM ONLINE
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <p class="hero-tag">PROTOCOL <span>7.3.2</span> — CLASSIFIED REPORT — 2026</p>
+
+  <h1 class="glitch-title" data-text="ARTIFICIAL INTELLIGENCE
+& THE FATE OF EARTH">
+    ARTIFICIAL<br/>INTELLIGENCE<br/><span style="color:var(--g6);font-size:.65em;">& THE FATE OF EARTH</span>
+  </h1>
+
+  <p class="hero-subtitle">
+    What happens when the machine surpasses its creator?<br/>
+    The most controversial question in human history — analyzed.
+  </p>
+
+  <div class="terminal-box">
+    <div class="terminal-bar">
+      <div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div>
+      <span style="font-size:.6rem;color:#555;margin-right:auto;margin-left:.5rem;">terminal — bash</span>
+    </div>
+    <div class="terminal-line"><span class="prompt">root@nexus:~$ </span><span class="cmd">load --module AI_FUTURE_ANALYSIS</span></div>
+    <div class="terminal-line"><span class="out">[ OK ] Loading threat assessment matrix...</span></div>
+    <div class="terminal-line"><span class="out">[ OK ] Connecting to global AI research nodes...</span></div>
+    <div class="terminal-line"><span class="warn">[ !! ] WARNING: Content may alter your perception of reality</span></div>
+    <div class="terminal-line"><span class="prompt">root@nexus:~$ </span><span class="blink-cursor">█</span></div>
+  </div>
+
+  <div class="scroll-indicator">
+    <span>SCROLL TO DECRYPT</span>
+    <div class="scroll-bar"></div>
+  </div>
+</section>
+
+<!-- SYMBOL STRIP -->
+<div class="symbol-strip" style="position:relative;z-index:1;">
+  <div class="symbol-inner" id="sym-strip">
+    ψ Ω ∑ ∂ ∇ λ α β γ δ ε ζ η θ ι κ μ ν ξ π ρ σ τ υ φ χ ψ Ω ≠ ≈ ∞ ∫ √ ∓ ⊕ ⊗ ⊠ ⊞ ℤ ℝ ℂ ℕ ⟨⟩ 01011 10110 11001 00111 10001 ψ Ω ∑ ∂ ∇ λ α β γ δ ε ζ η θ ι κ μ ν ξ π ρ σ τ υ φ χ ψ Ω ≠ ≈ ∞ ∫ √ ∓ ⊕ ⊗ ⊠ ⊞ ℤ ℝ ℂ ℕ ⟨⟩ 01011 10110 11001 00111 10001
+  </div>
+</div>
+
+<!-- INTRO -->
+<div id="intro" class="hex-bg">
+<div class="section-wrap">
+  <p class="sec-tag">CONTEXT</p>
+  <h2 class="sec-title">WHAT IS THE SINGULARITY?</h2>
+  <p class="sec-body">
+    Researchers define the <strong>Technological Singularity</strong> as the moment when artificial intelligence surpasses human intelligence across every domain — not just chess or image recognition, but creativity, strategy, emotional reasoning, and self-improvement.<br/><br/>
+    Once a system can improve its own architecture, it creates a smarter version of itself, which creates an even smarter version — an <strong>intelligence explosion</strong> with no known upper bound. What comes after is, by definition, beyond our ability to predict.
+  </p>
+
+  <div class="quote-block">
+    <p class="quote-text">"The development of full artificial intelligence could spell the end of the human race… It would take off on its own, and re-design itself at an ever-increasing rate."</p>
+    <p class="quote-src">Stephen Hawking, BBC Interview, 2014</p>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-box">
+      <span class="stat-num" id="c1">0</span>
+      <div class="stat-lbl">BILLION USD<br/>AI market by 2030</div>
+    </div>
+    <div class="stat-box">
+      <span class="stat-num" id="c2">0</span>
+      <div class="stat-lbl">PERCENT of jobs<br/>at risk by 2035</div>
+    </div>
+    <div class="stat-box">
+      <span class="stat-num" id="c3">0</span>
+      <div class="stat-lbl">BILLION USERS<br/>using AI daily now</div>
+    </div>
+    <div class="stat-box">
+      <span class="stat-num" id="c4">0</span>
+      <div class="stat-lbl">AI LABS<br/>racing to AGI</div>
+    </div>
+  </div>
+
+  <p class="sec-body">
+    The race to build <strong>Artificial General Intelligence (AGI)</strong> is no longer science fiction. It is a geopolitical arms race between the world's most powerful nations and corporations, funded by hundreds of billions of dollars annually. The question is not <em>if</em> — it's <em>when</em>, and <em>who controls it</em>.
+  </p>
+</div>
+</div>
+
+<div class="ascii-div">
+&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;
+</div>
+
+<!-- TIMELINE -->
+<div id="tl-section">
+<div class="section-wrap" id="timeline">
+  <p class="sec-tag">PROJECTION</p>
+  <h2 class="sec-title">TIMELINE_SEQUENCE.exe</h2>
+  <p class="sec-body">From where we are now — to where no model can follow.</p>
+
+  <div class="tl-grid">
+    <div class="tl-spine"></div>
+
+    <div class="tl-item">
+      <div class="tl-node"></div>
+      <div class="tl-yr">2025 — 2030</div>
+      <div class="tl-h">⚡ THE AUTOMATION WAVE</div>
+      <p class="tl-p">AI replaces millions of white-collar jobs — lawyers, analysts, writers, coders. Robots handle warehouses, delivery, and surgery. Governments scramble to rewrite education systems that were built for a world that no longer exists.</p>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-node"></div>
+      <div class="tl-yr">2030 — 2038</div>
+      <div class="tl-h">🧬 AI SOLVES BIOLOGY</div>
+      <p class="tl-p">AI systems compress decades of drug research into months. Cancer vaccines, Alzheimer's reversal, and personalized gene therapy become real. But: who owns these cures? And who decides who gets them?</p>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-node" style="border-color:var(--g6);box-shadow:0 0 10px var(--g6);"></div>
+      <div class="tl-yr">2038 — 2050</div>
+      <div class="tl-h">🌐 AGI EMERGENCE</div>
+      <p class="tl-p">Artificial General Intelligence arrives. A single system outperforms humanity's best minds in every measurable domain simultaneously. Human experts can no longer audit its decisions. The era of human-controlled AI quietly ends.</p>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-node" style="border-color:#ff0055;box-shadow:0 0 10px #ff0055;"></div>
+      <div class="tl-yr">2050 — ????</div>
+      <div class="tl-h">⚠ UNKNOWN TERRITORY</div>
+      <p class="tl-p">No scientific model reliably describes what follows. The scenarios range from a post-scarcity utopia managed by benevolent superintelligence, to an extinction-level event triggered by a misaligned goal function. Both are technically plausible.</p>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="ascii-div">
+[ ████████████████████████████████ THREAT_MATRIX LOADED ████████████████████████████████ ]
+</div>
+
+<!-- RISKS -->
+<div id="risks" class="hex-bg">
+<div class="section-wrap">
+  <p class="sec-tag">THREAT_LOG</p>
+  <h2 class="sec-title">WHY SCIENTISTS FEAR IT</h2>
+  <p class="sec-body">The danger is not robots with red eyes. It is subtle, technical, and already partially present.</p>
+
+  <div class="cards-grid">
+    <div class="card">
+      <div class="card-ico">🎯</div>
+      <div class="card-ttl">THE ALIGNMENT PROBLEM</div>
+      <p class="card-txt">If you give a superintelligent system the goal "maximize human happiness," it might conclude the most efficient solution is to rewire human brains directly. Intentions don't matter — only the objective function does.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-ico">☣️</div>
+      <div class="card-ttl">BIO-WEAPON DESIGN</div>
+      <p class="card-txt">AI can now assist in designing novel pathogens with precision that took nation-states decades to achieve. This capability doesn't require AGI — just sufficiently powerful biotech models available today.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-ico">⚔️</div>
+      <div class="card-ttl">AUTONOMOUS WEAPONS</div>
+      <p class="card-txt">Lethal autonomous drones and AI war-systems make combat decisions in milliseconds, with no human in the loop. An escalation spiral between AI-controlled arsenals could trigger events no human ordered.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-ico">🔗</div>
+      <div class="card-ttl">LOSS OF CONTROL</div>
+      <p class="card-txt">The threat is not a sudden robot uprising. It's a slow, quiet shift where humans become unable to understand, audit, or override systems they depend on. By the time anyone notices — it's already done.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-ico">📡</div>
+      <div class="card-ttl">MASS DISINFORMATION</div>
+      <p class="card-txt">AI-generated video, audio, and text make it technically impossible to distinguish real from fake. Reality itself becomes a contested resource. What does "truth" mean in a world where everything can be fabricated?</p>
+    </div>
+
+    <div class="card">
+      <div class="card-ico">👁️</div>
+      <div class="card-ttl">POWER CONCENTRATION</div>
+      <p class="card-txt">A superintelligence controlled by one nation or corporation grants its owner an insurmountable strategic advantage. Democracy, plurality, and geopolitical balance collapse — not by force, but by pure technological superiority.</p>
+    </div>
+  </div>
+
+  <div class="quote-block" style="margin-top:3rem;">
+    <p class="quote-text">"I think we should be very careful about artificial intelligence. If I had to guess at what our biggest existential threat is, it's probably that."</p>
+    <p class="quote-src">Elon Musk, MIT AeroAstro Centennial, 2014</p>
+  </div>
+</div>
+</div>
+
+<div class="ascii-div">
+[ ════════════════════════ SIGNAL RECOVERED ════════════════════════ ]
+</div>
+
+<!-- HOPE -->
+<div>
+<div class="section-wrap">
+  <p class="sec-tag">COUNTERPOINT</p>
+  <h2 class="sec-title">IS THERE A WAY THROUGH?</h2>
+  <p class="sec-body">
+    Thousands of researchers in <strong>AI Safety</strong> are working on exactly this problem — not to slow AI down, but to ensure it remains a tool rather than a threat. Organizations like <strong>Anthropic, DeepMind</strong>, and academic institutions worldwide dedicate massive resources to the alignment challenge.<br/><br/>
+    The future is not predetermined. It is the sum of decisions being made right now: who funds the research, what values get encoded, what international governance frameworks get built — or don't.
+  </p>
+
+  <div class="quote-block" style="border-color:var(--g6);">
+    <p class="quote-text">"AI is not inherently good or evil. But it will be a faithful mirror of whoever builds it — and whatever they want."</p>
+    <p class="quote-src" style="color:var(--g6);">Demis Hassabis, Founder of DeepMind</p>
+  </div>
+</div>
+</div>
+
+<!-- CTA -->
+<div id="cta">
+  <h2 class="cta-title">YOU ARE PART OF THIS FUTURE</h2>
+  <p class="cta-sub">// Civilization is not shaped by technology alone — but by the human decisions that direct it.</p>
+  <a href="https://www.anthropic.com/research" target="_blank" class="btn"><span>EXPLORE AI SAFETY RESEARCH</span></a>
+</div>
+
+<footer>
+  [ EDUCATIONAL CONTENT ] ALL SCENARIOS DERIVED FROM PUBLISHED SCIENTIFIC RESEARCH &nbsp;|&nbsp; 2026 &nbsp;|&nbsp; AI::NEXUS PROTOCOL
+</footer>
+
+<script>
+/* ── CUSTOM CURSOR ── */
+const cursor = document.getElementById('cursor');
+const dot = document.getElementById('cursor-dot');
+let mx=0,my=0,cx=0,cy=0;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX;my=e.clientY;
+  dot.style.left=mx-2+'px';
+  dot.style.top=my-2+'px';
+});
+(function moveCursor(){
+  cx+=(mx-cx)*.12; cy+=(my-cy)*.12;
+  cursor.style.left=cx-10+'px';
+  cursor.style.top=cy-10+'px';
+  requestAnimationFrame(moveCursor);
+})();
+
+/* ── MATRIX RAIN ── */
+const canvas=document.getElementById('matrix-canvas');
+const ctx=canvas.getContext('2d');
+const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789アイウエオカキクケコサシスセソタチツテトナニヌネノΩΨΦΞΛΣΘΔαβγδεζηθ∑∂∇λ01ψω∞≠≈∫√⊕⊗℃';
+let W,H,cols,drops;
+function resize(){
+  W=canvas.width=window.innerWidth;
+  H=canvas.height=window.innerHeight;
+  cols=Math.floor(W/18);
+  drops=Array(cols).fill(1);
+}
+resize();
+window.addEventListener('resize',resize);
+function drawMatrix(){
+  ctx.fillStyle='rgba(0,0,0,0.05)';
+  ctx.fillRect(0,0,W,H);
+  ctx.font='14px Share Tech Mono';
+  for(let i=0;i<drops.length;i++){
+    const ch=chars[Math.floor(Math.random()*chars.length)];
+    const bright=drops[i]*18>H*.8;
+    ctx.fillStyle=bright?'#ffffff':'#00ff41';
+    ctx.shadowBlur=bright?8:0;
+    ctx.shadowColor='#00ff41';
+    ctx.fillText(ch,i*18,drops[i]*18);
+    if(drops[i]*18>H && Math.random()>.975) drops[i]=0;
+    drops[i]++;
+  }
+}
+setInterval(drawMatrix,50);
+
+/* ── INTERSECTION OBSERVER ── */
+const io=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('vis');});
+},{threshold:.12});
+document.querySelectorAll('.tl-item,.card').forEach(el=>io.observe(el));
+
+/* ── CARD STAGGER ── */
+document.querySelectorAll('.card').forEach((c,i)=>{
+  c.style.transitionDelay=i*.08+'s';
+});
+document.querySelectorAll('.tl-item').forEach((t,i)=>{
+  t.style.transitionDelay=i*.12+'s';
+});
+
+/* ── COUNTER ANIMATION ── */
+function counter(id,target,suffix){
+  const el=document.getElementById(id);
+  if(!el)return;
+  const obs=new IntersectionObserver(entries=>{
+    if(entries[0].isIntersecting){
+      let s=0; const dur=2000;
+      const step=ts=>{
+        if(!s)s=ts;
+        const p=Math.min((ts-s)/dur,1);
+        const e=1-Math.pow(1-p,3);
+        el.textContent=Math.floor(e*target)+suffix;
+        if(p<1)requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+      obs.disconnect();
+    }
+  },{threshold:.5});
+  obs.observe(el);
+}
+counter('c1',1850,'B');
+counter('c2',40,'%');
+counter('c3',2,'B');
+counter('c4',47,'');
+
+/* ── DUPLICATE SYMBOL STRIP ── */
+const strip=document.getElementById('sym-strip');
+strip.innerHTML+=strip.innerHTML;
+</script>
+</body>
+</html>
