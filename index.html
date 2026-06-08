@@ -988,29 +988,36 @@ document.querySelectorAll('.tl-item').forEach((t,i)=>{
 });
 
 /* ── COUNTER ANIMATION ── */
-function counter(id,target,suffix){
-  const el=document.getElementById(id);
-  if(!el)return;
-  const obs=new IntersectionObserver(entries=>{
-    if(entries[0].isIntersecting){
-      let s=0; const dur=2000;
-      const step=ts=>{
-        if(!s)s=ts;
-        const p=Math.min((ts-s)/dur,1);
-        const e=1-Math.pow(1-p,3);
-        el.textContent=Math.floor(e*target)+suffix;
-        if(p<1)requestAnimationFrame(step);
+function counter(id, target, suffix) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  
+  const obs = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) {
+      let s = null; 
+      const dur = 2000;
+      
+      const step = ts => {
+        if (!s) s = ts;
+        const p = Math.min((ts - s) / dur, 1);
+        const e = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.floor(e * target) + suffix;
+        if (p < 1) requestAnimationFrame(step);
       };
+      
       requestAnimationFrame(step);
       obs.disconnect();
     }
-  },{threshold:.5});
+  }, { threshold: 0.5 });
+  
   obs.observe(el);
 }
-counter('c1',1850,'B');
-counter('c2',40,'%');
-counter('c3',2,'B');
-counter('c4',47,'');
+
+counter('c1', 1850, 'B');
+counter('c2', 40, '%');
+counter('c3', 2, 'B');
+counter('c4', 47, '');
+
 
 /* ── DUPLICATE SYMBOL STRIP ── */
 const strip=document.getElementById('sym-strip');
